@@ -176,7 +176,7 @@ python main.py --interactive
 
 **Dhruv Raj** · [GitHub](https://github.com/Snipy19)
 
-**Yashica Gupta** · [GitHub](https://github.com/)
+**Yashica Gupta** · [GitHub](https://github.com/gyashica1hub)
 
 ---
 
