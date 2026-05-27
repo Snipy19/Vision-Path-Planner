@@ -1,127 +1,113 @@
-# Vision Path Planner — AI Fundamentals Showcase
-### From Pixels to Paths: A Complete AI Navigation System
+# Vision Path Planner
+
+> From any image to an optimal path — drop a floorplan, maze, or 3D render and watch 8 AI algorithms navigate through it in real time.
+
+![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green?style=flat-square&logo=opencv)
+![PyQt5](https://img.shields.io/badge/PyQt5-GUI-orange?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
 
 ---
 
-## What This Project Does
+## What It Does
 
-This system takes a **real-world floor plan or maze image** and navigates through it using every major AI technique from the course. It converts the image into a grid, then solves the navigation problem using 7 different AI paradigms — comparing their speed, optimality, and intelligence.
+Upload any image — a hand-drawn maze, an architectural floorplan, a 3D rendered office, or a satellite map. The system automatically converts it into a navigable grid and solves it using 8 different AI paradigms side by side, letting you compare their paths, speed, and efficiency visually.
+
+**No external AI or pathfinding libraries. Everything built from scratch.**
 
 ---
 
-## AI Techniques Implemented (ALL from scratch — no AI libraries)
+## Demo
 
-### 1. BFS — Breadth-First Search (Uninformed)
-- Explores nodes layer-by-layer (like water ripples)
-- **Guarantees shortest path** in unweighted graphs
-- Real use: Emergency evacuation routing, network packet routing
+| Simple Maze | 2D Floorplan | 3D Rendered Space |
+|---|---|---|
+| BFS finds shortest path | A* navigates rooms | HSV-based floor detection |
 
-### 2. DFS — Depth-First Search (Uninformed)
-- Dives deep before backtracking (like solving a maze by always turning left)
-- Low memory (O(depth) vs O(V) for BFS)
-- Real use: Game tree exploration (Chess/Go)
+---
 
-### 3. IDDFS — Iterative Deepening DFS (Uninformed)
-- Combines BFS optimality + DFS memory efficiency
-- Tries depth limits 1, 2, 3, ... until goal found
-- Real use: Chess engine move search (Alpha-Beta base)
+## Algorithms Implemented
 
-### 4. A* with 5 Heuristics (Informed Search)
-Uses f(n) = g(n) + h(n) — the most important formula in AI pathfinding
+### Uninformed Search
+| Algorithm | Strategy | Optimal? |
+|---|---|---|
+| BFS | Level-by-level exploration | Yes |
+| DFS | Depth-first with backtracking | No |
+| IDDFS | Iterative deepening — BFS optimal + DFS memory | Yes |
 
+### Informed Search — A* with 5 Heuristics
 | Heuristic | Formula | Best For |
-|-----------|---------|----------|
-| Manhattan | `|dr| + |dc|` | 4-direction grids (city blocks) |
-| Euclidean | `√(dr²+dc²)` | Free-movement agents |
-| Chebyshev | `max(|dr|,|dc|)` | 8-direction grids (king's move) |
-| Octile | `max+0.414*min` | Most accurate 8-dir heuristic |
-| Dijkstra (h=0) | `0` | Weighted graphs, no estimation |
+|---|---|---|
+| Manhattan | `\|dr\| + \|dc\|` | 4-direction grids |
+| Euclidean | `√(dr²+dc²)` | Free movement |
+| Chebyshev | `max(\|dr\|,\|dc\|)` | 8-direction grids |
+| Octile | `max + 0.414·min` | Most accurate 8-dir |
+| Dijkstra (h=0) | `0` | Uniform cost search |
 
-### 5. Weighted A* (Speed-Optimality Tradeoff)
-- `f = g + W*h` where W=2
-- W=1 → Standard optimal A*; W→∞ → Greedy best-first
-- Explores fewer nodes, slightly longer path (bounded sub-optimality)
+**Weighted A\* (W=2)** — deliberately trades optimality for speed
 
-### 6. MDP + Value Iteration (Stochastic Decision Making)
-**MDP Components (SARP):**
-- **S**tates: Every walkable cell
-- **A**ctions: {UP, DOWN, LEFT, RIGHT}
-- **R**eward: +100 at goal, -0.04 per step
-- **P**robability: 80% intended move, 10% slip left, 10% slip right
+### Planning Under Uncertainty
+**MDP + Bellman Value Iteration**
+- Stochastic transitions — 80% intended, 10% slip left, 10% slip right
+- Solves: `V(s) = max_a [R(s,a) + γ · Σ P(s'|s,a) · V(s')]`
+- Outputs full policy for every walkable state
 
-**Bellman Equation:** `V(s) = max_a [R(s,a) + γ * Σ P(s'|s,a) * V(s')]`
+### Reinforcement Learning
+**Q-Learning (Model-Free)**
+- No environment model — learns purely by trial and error
+- ε-greedy exploration: ε decays 1.0 → 0.05 as agent learns
+- TD Bellman update: `Q(s,a) ← Q(s,a) + α[R + γ·max Q(s',a') - Q(s,a)]`
 
-Real use: Robot navigation under uncertainty, self-driving car decisions
-
-### 7. Q-Learning (Model-Free Reinforcement Learning)
-- No environment model needed — learns by trial and error
-- **ε-greedy exploration**: explore randomly (ε) OR exploit best known action (1-ε)
-- **Bellman TD Update**: `Q(s,a) ← Q(s,a) + α[R + γ·max Q(s',a') - Q(s,a)]`
-- ε decays from 1.0 → 0.05 as agent learns
-- Real use: DeepMind games, robotics locomotion, recommendation systems
-
-### 8. Neural Network Obstacle Classifier
+### Neural Network + A*
 - **Architecture**: Input(9) → Hidden(16, ReLU) → Output(1, Sigmoid)
-- **Features**: 3×3 pixel patch brightness values
-- **Training**: Binary Cross-Entropy loss, manual backpropagation
-- **Xavier initialization**, SGD optimizer — all from scratch
-- Classifies each pixel as walkable/obstacle better than simple thresholding
-- Real use: Satellite image road detection, autonomous vehicle perception
+- **Features**: 3×3 pixel patch brightness values per cell
+- **Training**: Binary Cross-Entropy loss, manual backpropagation, Xavier initialization
+- Classifies every pixel as walkable or obstacle — replaces simple thresholding
 
 ---
 
-## How to Run
+## Smart Image Processing Pipeline
 
-### Requirements
-```
-pip install opencv-python numpy matplotlib
-```
+The system handles 4 types of input images automatically:
 
-### Basic Run (uses default floorplan)
-```
-python src/main.py
-```
+| Mode | How It Works |
+|---|---|
+| **Simple B&W** | Threshold + morphological cleanup |
+| **Complex 3D Render** | HSV color space — detects colored equipment + dark walls as obstacles, light floor as walkable |
+| **Satellite / Map** | Low-saturation road detection + adaptive threshold |
+| **Occupancy Grid** | Smart crop, border removal, auto-invert |
 
-### Choose a specific map
-```
-python src/main.py --image data/floorplans/fp1.jpg
-python src/main.py --image data/maze/image2.jpg
-```
-
-### Click to select start/goal points
-```
-python src/main.py --interactive
-```
-
-### More RL training (better Q-Learning policy)
-```
-python src/main.py --rl-episodes 500
-```
+Auto-detection runs by default — no manual configuration needed.
 
 ---
 
-## Output Files (saved in `outputs/`)
+## Dashboard Features
 
-| File | Contents |
-|------|----------|
-| `01_algorithm_comparison.png` | All algorithms on the map side-by-side |
-| `02_mdp_rl_heatmaps.png` | MDP value function + Q-value heatmaps |
-| `03_qlearning_training.png` | RL training reward curve |
-| `04_nn_training_loss.png` | Neural network loss curve |
-| `05_heuristic_comparison.png` | A* heuristics nodes/time comparison |
+- Upload any image via file dialog
+- Click to place Start and Goal, or use Auto-Select
+- Choose which algorithms to run individually
+- View results across 7 tabs:
+  - **Grid View** — original image, binary grid, overlay
+  - **Algorithm Comparison** — all paths drawn on image
+  - **MDP & RL Heatmaps** — V(s) plasma map, Q(s,a) viridis map
+  - **Training Curves** — Q-Learning reward per episode, NN loss curve
+  - **Heuristic Analysis** — nodes explored, time, path length per heuristic
+  - **Performance Table** — full metrics for all algorithms
+  - **Best Algorithm** — composite ranking with reasoning
 
 ---
 
 ## Project Structure
 
 ```
-Vision_Path_Planner/
+Vision-Path-Planner/
+├── dashboard.py                   ← Main GUI — run this
+├── requirements.txt
+├── README.md
 ├── src/
-│   ├── main.py                    ← Run this
 │   ├── algorithms/
 │   │   ├── bfs.py                 ← BFS (manual FIFO queue)
 │   │   ├── dfs.py                 ← DFS + IDDFS
-│   │   └── astar.py               ← A* + 5 heuristics + Weighted A*
+│   │   └── astar.py               ← A* with 5 heuristics + Weighted A*
 │   ├── mdp/
 │   │   ├── mdp.py                 ← MDP + Value Iteration
 │   │   └── qlearning.py           ← Q-Learning agent
@@ -130,34 +116,72 @@ Vision_Path_Planner/
 │   ├── image_processing/
 │   │   └── grid.py                ← Image → Binary grid
 │   └── utils/
-│       ├── point_selector.py      ← Click-to-select or auto points
-│       └── visualization.py       ← Drawing & plotting helpers
+│       ├── point_selector.py      ← Largest-component-aware point selection
+│       └── visualization.py       ← Drawing and plotting helpers
 ├── data/
-│   ├── floorplans/               ← Building floor plan images
-│   ├── maze/                     ← Maze images
-│   └── maps/                     ← Street/outdoor maps
-├── outputs/                      ← Generated result images
-├── requirements.txt
-└── README.md
+│   ├── floorplans/
+│   ├── maze/
+│   └── maps/
+└── outputs/                       ← Generated result images saved here
 ```
 
 ---
 
-## Problem Formulation (AI Terms — CLO-2)
+## Setup & Run
 
-**Problem Type**: Sequential decision-making + search
+```bash
+pip install opencv-python numpy matplotlib PyQt5
+```
 
-| Algorithm | AI Category | Optimal? | Handles Uncertainty? |
-|-----------|-------------|----------|----------------------|
-| BFS | Uninformed Search | ✓ | ✗ |
-| DFS | Uninformed Search | ✗ | ✗ |
-| IDDFS | Uninformed Search | ✓ | ✗ |
-| A* | Informed Heuristic Search | ✓ (admissible h) | ✗ |
-| Weighted A* | Informed Heuristic Search | ✗ (bounded) | ✗ |
-| MDP | Planning under Uncertainty | ✓ | ✓ |
-| Q-Learning | Model-Free RL | ✓ (asymptotic) | ✓ |
-| NN+A* | ML + Search Hybrid | depends | ✗ |
+```bash
+python dashboard.py
+```
+
+### CLI Mode
+```bash
+cd src
+python main.py --image data/floorplans/fp1.jpg
+python main.py --image data/maze/image1.jpg --rl-episodes 300
+python main.py --interactive
+```
 
 ---
 
-*All core AI logic implemented from scratch. No external pathfinding, RL, or ML libraries used.*
+## Algorithm Comparison at a Glance
+
+| Algorithm | Category | Optimal | Handles Uncertainty |
+|---|---|---|---|
+| BFS | Uninformed Search | Yes | No |
+| DFS | Uninformed Search | No | No |
+| IDDFS | Uninformed Search | Yes | No |
+| A* | Informed Heuristic Search | Yes (admissible h) | No |
+| Weighted A* | Informed Heuristic Search | No (bounded) | No |
+| MDP | Planning Under Uncertainty | Yes | Yes |
+| Q-Learning | Model-Free RL | Yes (asymptotic) | Yes |
+| NN + A* | ML + Search Hybrid | Depends on NN | No |
+
+---
+
+## Built With
+
+- Python 3.8+
+- OpenCV — image processing and grid generation
+- NumPy — grid operations and array math
+- PyQt5 — interactive dashboard GUI
+- Matplotlib — visualization and heatmaps
+
+---
+
+## Authors
+
+**Dhruv Raj** · [GitHub](https://github.com/Snipy19)
+
+**Yashica Gupta**
+
+*AI Fundamentals Course Project — UNC504*
+
+---
+
+## License
+
+MIT License — free to use, modify, and distribute.
