@@ -176,9 +176,7 @@ python main.py --interactive
 
 **Dhruv Raj** · [GitHub](https://github.com/Snipy19)
 
-**Yashica Gupta**
-
-*AI Fundamentals Course Project — UNC504*
+**Yashica Gupta** · [GitHub](https://github.com/)
 
 ---
 
