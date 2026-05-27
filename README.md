@@ -32,7 +32,6 @@ Upload any image — a hand-drawn maze, an architectural floorplan, a 3D rendere
 |---|---|---|
 | BFS | Level-by-level exploration | Yes |
 | DFS | Depth-first with backtracking | No |
-| IDDFS | Iterative deepening — BFS optimal + DFS memory | Yes |
 
 ### Informed Search — A* with 5 Heuristics
 | Heuristic | Formula | Best For |
