@@ -1,6 +1,6 @@
 # Vision Path Planner
 
-> From any image to an optimal path — drop a floorplan, maze, or 3D render and watch 8 AI algorithms navigate through it in real time.
+> From any image to an optimal path — drop a floorplan, maze, or 3D render and watch 7 AI algorithms navigate through it in real time.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green?style=flat-square&logo=opencv)
