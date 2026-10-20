@@ -131,3 +131,7 @@ python -m compileall -q src dashboard.py
 ## License
 
 MIT.
+
+## Authors
+
+Dhruv Raj · Yashica Gupta
