@@ -13,7 +13,7 @@ The project is designed to be inspectable: pathfinding is implemented locally, b
 
 The repository includes a real rendered-room test image, a shared HSV/morphology segmentation path, and a machine-readable validation report. The PDF report is generated locally and intentionally excluded from GitHub.
 
-## Resume-ready highlights
+## Highlights
 
 - Image-to-occupancy-grid pipeline with morphology cleanup, scale safety, coordinate-safe overlays, and automatic endpoint selection.
 - BFS, DFS, A*, Weighted A*, Bidirectional A*, MDP value iteration, Q-Learning, and NN+A*.
@@ -119,14 +119,6 @@ Input image → ImageToGrid → occupancy grid
 python -m unittest discover -s tests -v
 python -m compileall -q src dashboard.py
 ```
-
-## Resume bullets
-
-> Built an image-to-occupancy-grid navigation system in Python/OpenCV with BFS, A*, Weighted A*, Bidirectional A*, MDP value iteration, Q-Learning, and a manual backpropagation classifier; added a configurable seeded benchmark that reports route success, optimality, latency, and expanded nodes from raw runs.
-
-> In a measured reference run, reduced expanded nodes by 91.29% with Weighted A* versus BFS at 92.624% mean shortest-path optimality; exact results vary with map size, obstacle density, seed, and hardware.
-
-> Delivered a PyQt5 dashboard with live obstacle edits, stepwise search animation, RL/MDP heatmaps, JSON benchmark export, and regression tests for planner optimality and reproducibility.
 
 ## Authors
 
