@@ -1,180 +1,133 @@
 # Vision Path Planner
 
-> From any image to an optimal path — drop a floorplan, maze, or 3D render and watch 8 AI methods to navigate through it in real time.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-image%20pipeline-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
+[![Tests](https://img.shields.io/badge/tests-5%20passing-22c55e)](tests/)
+[![License](https://img.shields.io/badge/license-MIT-8b5cf6)](LICENSE)
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green?style=flat-square&logo=opencv)
-![PyQt5](https://img.shields.io/badge/PyQt5-GUI-orange?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
+Vision Path Planner converts a floorplan, maze, map, or rendered scene into an occupancy grid and compares classical search, stochastic planning, reinforcement learning, and a small from-scratch neural classifier on the same start/goal problem.
 
----
+The project is designed to be inspectable: pathfinding is implemented locally, benchmarks are deterministic, and the headline numbers below come from the benchmark runner rather than hand-written claims.
 
-## What It Does
+![3D-render input](data/floorplans/fp5.jpg)
 
-Upload any image — a hand-drawn maze, an architectural floorplan, a 3D rendered office, or a satellite map. The system automatically converts it into a navigable grid and solves it using 8 different AI paradigms side by side, letting you compare their paths, speed, and efficiency visually.
+The repository includes a real rendered-room test image, a shared HSV/morphology segmentation path, and a machine-readable validation report. The PDF report is generated locally and intentionally excluded from GitHub.
 
-**No external AI or pathfinding libraries. Everything built from scratch.**
+## Resume-ready highlights
 
----
+- Image-to-occupancy-grid pipeline with morphology cleanup, scale safety, coordinate-safe overlays, and automatic endpoint selection.
+- BFS, DFS, A*, Weighted A*, Bidirectional A*, MDP value iteration, Q-Learning, and NN+A*.
+- PyQt5 dashboard with non-blocking workers, heatmaps, training curves, live obstacle editing, and step-by-step animation.
+- Seeded evaluation harness with success rate, path optimality, latency, expanded nodes, and p95 latency.
+- Regression tests cover planner optimality, bidirectional search, reproducibility, and dynamic-obstacle isolation.
 
-## Demo
-
-| Simple Maze | 2D Floorplan | 3D Rendered Space |
-|---|---|---|
-| BFS finds shortest path | A* navigates rooms | HSV-based floor detection |
-
----
-
-## Algorithms Implemented
-
-### Uninformed Search
-| Algorithm | Strategy | Optimal? |
-|---|---|---|
-| BFS | Level-by-level exploration | Yes |
-| DFS | Depth-first with backtracking | No |
-
-### Informed Search — A* with 5 Heuristics
-| Heuristic | Formula | Best For |
-|---|---|---|
-| Manhattan | `\|dr\| + \|dc\|` | 4-direction grids |
-| Euclidean | `√(dr²+dc²)` | Free movement |
-| Chebyshev | `max(\|dr\|,\|dc\|)` | 8-direction grids |
-
-### Planning Under Uncertainty
-**MDP + Bellman Value Iteration**
-- Stochastic transitions — 80% intended, 10% slip left, 10% slip right
-- Solves: `V(s) = max_a [R(s,a) + γ · Σ P(s'|s,a) · V(s')]`
-- Outputs full policy for every walkable state
-
-### Reinforcement Learning
-**Q-Learning (Model-Free)**
-- No environment model — learns purely by trial and error
-- ε-greedy exploration: ε decays 1.0 → 0.05 as agent learns
-- TD Bellman update: `Q(s,a) ← Q(s,a) + α[R + γ·max Q(s',a') - Q(s,a)]`
-
-### Neural Network + A*
-- **Architecture**: Input(9) → Hidden(16, ReLU) → Output(1, Sigmoid)
-- **Features**: 3×3 pixel patch brightness values per cell
-- **Training**: Binary Cross-Entropy loss, manual backpropagation, Xavier initialization
-- Classifies every pixel as walkable or obstacle — replaces simple thresholding
-
----
-
-## Smart Image Processing Pipeline
-
-The system handles 4 types of input images automatically:
-
-| Mode | How It Works |
-|---|---|
-| **Simple B&W** | Threshold + morphological cleanup |
-| **Complex 3D Render** | HSV color space — detects colored equipment + dark walls as obstacles, light floor as walkable |
-| **Satellite / Map** | Low-saturation road detection + adaptive threshold |
-| **Occupancy Grid** | Smart crop, border removal, auto-invert |
-
-Auto-detection runs by default — no manual configuration needed.
-
----
-
-## Dashboard Features
-
-- Upload any image via file dialog
-- Click to place Start and Goal, or use Auto-Select
-- Choose which algorithms to run individually
-- View results across 7 tabs:
-  - **Grid View** — original image, binary grid, overlay
-  - **Algorithm Comparison** — all paths drawn on image
-  - **MDP & RL Heatmaps** — V(s) plasma map, Q(s,a) viridis map
-  - **Training Curves** — Q-Learning reward per episode, NN loss curve
-  - **Heuristic Analysis** — nodes explored, time, path length per heuristic
-  - **Performance Table** — full metrics for all algorithms
-  - **Best Algorithm** — composite ranking with reasoning
-
----
-
-## Project Structure
-
-```
-Vision-Path-Planner/
-├── dashboard.py                   ← Main GUI — run this
-├── requirements.txt
-├── README.md
-├── src/
-│   ├── algorithms/
-│   │   ├── bfs.py                 ← BFS (manual FIFO queue)
-│   │   ├── dfs.py                 ← DFS + IDDFS
-│   │   └── astar.py               ← A* with 5 heuristics + Weighted A*
-│   ├── mdp/
-│   │   ├── mdp.py                 ← MDP + Value Iteration
-│   │   └── qlearning.py           ← Q-Learning agent
-│   ├── neural/
-│   │   └── nn_classifier.py       ← 2-layer NN, backprop from scratch
-│   ├── image_processing/
-│   │   └── grid.py                ← Image → Binary grid
-│   └── utils/
-│       ├── point_selector.py      ← Largest-component-aware point selection
-│       └── visualization.py       ← Drawing and plotting helpers
-├── data/
-│   ├── floorplans/
-│   ├── maze/
-│   └── maps/
-└── outputs/                       ← Generated result images saved here
-```
-
----
-
-## Setup & Run
+## Variable benchmark — no fixed or invented claims
 
 ```bash
-pip install opencv-python numpy matplotlib PyQt5
+python -m src.evaluation.benchmark --scenarios 8 --repeats 3 --size 48 --seed 17 \
+  --density 0.16 \
+  --output outputs/benchmarks/benchmark_latest.json
 ```
 
+Every setting is configurable: `--scenarios`, `--repeats`, `--size`, `--seed`, `--density`, `--algorithms`, and `--no-route-carve`. The table below is one measured reference run from the command above; timings vary with hardware and should be regenerated before quoting them. The JSON report contains the raw run-level evidence.
+
+| Algorithm | Success | Mean nodes | Reduction vs BFS | Mean optimality | Mean time |
+|---|---:|---:|---:|---:|---:|
+| BFS | 100% | 1,775.75 | baseline | 100% | 1.3953 ms |
+| A* (Manhattan) | 100% | 1,432.25 | 19.34% | 100% | 2.7578 ms |
+| Bidirectional A* | 100% | 848.38 | 52.22% | 100% | 2.3396 ms |
+| Weighted A* (1.5) | 100% | 154.75 | 91.29% | 92.624% | 0.3394 ms |
+| DFS | 100% | 838.88 | 52.76% | 51.516% | 0.7848 ms |
+
+These are planning metrics from the current reference run, not a fabricated computer-vision accuracy score. The current image classifier is trained against threshold-derived labels; a real perception accuracy claim requires a human-labelled dataset, which is intentionally not claimed here.
+
+## Real 3D-render validation
+
+The bundled 3D-style images are tested through the shared HSV + morphology image pipeline:
+
 ```bash
+python -m src.evaluation.image_validation \
+  --image data/floorplans/fp5.jpg data/floorplans/fp7.jpeg \
+  --mode 3d --max-dimension 160
+```
+
+Recorded validation run:
+
+| Image | Grid | Walkable cells | BFS | A* | Weighted A* |
+|---|---:|---:|---:|---:|---:|
+| `fp5.jpg` | 160×158 | 70.293% | valid / 304 steps | valid / 304 | valid / 312 |
+| `fp7.jpeg` | 133×160 | 91.908% | valid / 279 steps | valid / 279 | valid / 279 |
+
+These values describe the generated occupancy grid and path validity, not ground-truth pixel segmentation accuracy. New images, modes, dimensions, and endpoints produce new results in `image_validation.json`.
+
+## Run it
+
+```bash
+pip install -r requirements.txt
 python dashboard.py
 ```
 
-### CLI Mode
+For reproducible/headless CLI runs:
+
 ```bash
-cd src
-python main.py --image data/floorplans/fp1.jpg
-python main.py --image data/maze/image1.jpg --rl-episodes 300
-python main.py --interactive
+python src/main.py --image data/maze/image1.jpg --max-dimension 160 --rl-episodes 200 --headless
+python src/main.py --image data/floorplans/fp2.jpg --interactive
+python src/main.py --image data/floorplans/fp5.jpg --mode 3d --headless
+python src/main.py --image data/maze/image1.jpg --include-iddfs --headless
+python -m src.evaluation.benchmark --scenarios 12 --repeats 5 --size 64 --seed 91 --density 0.22 --algorithms "BFS,A*,Weighted A*"
+python -m src.evaluation.image_validation --image data/floorplans/fp5.jpg data/floorplans/fp7.jpeg --mode 3d
 ```
 
----
+`--max-dimension` keeps large camera images from becoming unexpectedly expensive search graphs. The CLI downscales the rendered image and grid together so path overlays stay aligned. IDDFS is available for teaching/exhaustive comparison but is opt-in because repeated depth-limited search is intentionally expensive on winding maps.
 
-## Algorithm Comparison at a Glance
+## Architecture
 
-| Algorithm | Category | Optimal | Handles Uncertainty |
-|---|---|---|---|
-| BFS | Uninformed Search | Yes | No |
-| DFS | Uninformed Search | No | No |
-| IDDFS | Uninformed Search | Yes | No |
-| A* | Informed Heuristic Search | Yes (admissible h) | No |
-| Weighted A* | Informed Heuristic Search | No (bounded) | No |
-| MDP | Planning Under Uncertainty | Yes | Yes |
-| Q-Learning | Model-Free RL | Yes (asymptotic) | Yes |
-| NN + A* | ML + Search Hybrid | Depends on NN | No |
+Open [architecture.html](architecture.html) in a browser for the animated, perspective system map. It shows image upload and endpoint selection, grid construction, parallel planners, learned policies, dashboard workers, and persisted reports.
 
----
+```text
+Input image → ImageToGrid → occupancy grid
+                         ├→ BFS / DFS / A* / Weighted A* / Bidirectional A*
+                         ├→ MDP value iteration / Q-Learning
+                         └→ 3×3 patch NN → A* validation
+                                   ↓
+              overlays + heatmaps + training curves + JSON benchmark
+```
 
-## Built With
+## Repository layout
 
-- Python 3.8+
-- OpenCV — image processing and grid generation
-- NumPy — grid operations and array math
-- PyQt5 — interactive dashboard GUI
-- Matplotlib — visualization and heatmaps
+- `src/algorithms/` — BFS, DFS/IDDFS, A*, bidirectional A*, dynamic obstacles
+- `src/evaluation/` — seeded benchmark and machine-readable reports
+- `src/image_processing/` — image-to-grid conversion
+- `src/mdp/` — value iteration and Q-Learning
+- `src/neural/` — manual forward/backprop classifier
+- `src/utils/` — endpoint selection and visualization helpers
+- `tests/` — fast regression tests for the planner core
+- `data/` — example floorplans, mazes, and maps
+- `dashboard.py` — PyQt5 application entry point
+- `architecture.html` — animated browser architecture view
 
----
+## Engineering notes
 
-## Authors
+- No external pathfinding, reinforcement-learning, or deep-learning framework is used for the core algorithms.
+- The benchmark records its seed, grid size, movement model, ground truth, raw runs, and aggregates in JSON.
+- Dynamic obstacles are isolated from the caller's base grid and can be reset deterministically.
+- Diagonal motion prevents corner cutting; all paths are returned in grid coordinates.
 
-**Dhruv Raj** · [GitHub](https://github.com/Snipy19)
+## Verification
 
-**Yashica Gupta** · [GitHub](https://github.com/gyashica1hub)
+```bash
+python -m unittest discover -s tests -v
+python -m compileall -q src dashboard.py
+```
 
----
+## Resume bullets
+
+> Built an image-to-occupancy-grid navigation system in Python/OpenCV with BFS, A*, Weighted A*, Bidirectional A*, MDP value iteration, Q-Learning, and a manual backpropagation classifier; added a configurable seeded benchmark that reports route success, optimality, latency, and expanded nodes from raw runs.
+
+> In a measured reference run, reduced expanded nodes by 91.29% with Weighted A* versus BFS at 92.624% mean shortest-path optimality; exact results vary with map size, obstacle density, seed, and hardware.
+
+> Delivered a PyQt5 dashboard with live obstacle edits, stepwise search animation, RL/MDP heatmaps, JSON benchmark export, and regression tests for planner optimality and reproducibility.
 
 ## License
 
-MIT License — free to use, modify, and distribute.
+MIT.

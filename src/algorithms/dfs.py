@@ -88,7 +88,10 @@ class DFS:
             if depth >= limit:
                 continue
 
-            if visited_at_depth.get(node, -1) >= depth:
+            # A shallower visit dominates a deeper visit.  The old
+            # comparison accidentally discarded the useful shallow branch,
+            # making IDDFS report "no path" on valid but winding maps.
+            if visited_at_depth.get(node, float('inf')) <= depth:
                 continue
             visited_at_depth[node] = depth
 
@@ -98,7 +101,8 @@ class DFS:
                 nxt = (nr, nc)
                 if (0 <= nr < self.rows and
                     0 <= nc < self.cols and
-                    self.grid[nr][nc] == 1):
+                    self.grid[nr][nc] == 1 and
+                    nxt not in path):
                     stack.append((nxt, path + [nxt], depth + 1))
 
         return None, nodes

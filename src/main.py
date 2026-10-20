@@ -34,6 +34,14 @@ import time
 import argparse
 import math
 
+# The dashboard and CLI are used on Windows as well as Unix.  Keep the
+# algorithm output readable instead of letting a CP1252 console crash on the
+# first arrow/checkmark character.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # ── Path setup (allows running from any directory) ──────────────────────
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -121,7 +129,9 @@ def show_grid_visual(img, binary, grid):
 
     
 # ─────────────────────────────────────────────────────────────────────────
-def run(image_path, rl_episodes=200, interactive_points=False):
+def run(image_path, rl_episodes=200, interactive_points=False,
+        max_dimension=160, headless=False, include_iddfs=False,
+        image_mode="auto"):
 
     print("\n" + "="*70)
     print("  VISION PATH PLANNER — Full AI Pipeline")
@@ -129,7 +139,8 @@ def run(image_path, rl_episodes=200, interactive_points=False):
 
     # ── 1. Load & Process Image ──────────────────────────────────────────
     print("\n[1/7] Loading and preprocessing image...")
-    processor = ImageToGrid(image_path, white_thresh=200)
+    processor = ImageToGrid(image_path, white_thresh=200,
+                            max_dimension=max_dimension, mode=image_mode)
     grid, binary, img, gray = processor.process()
     rows, cols = len(grid), len(grid[0])
     walkable_count = sum(grid[r][c] for r in range(rows) for c in range(cols))
@@ -167,13 +178,16 @@ def run(image_path, rl_episodes=200, interactive_points=False):
     print(f"      DFS   → Path: {len(dfs_path) if dfs_path else 'None':>5} cells | "
           f"Explored: {dfs_nodes:>6} | Time: {dfs_time:.4f}s")
 
-    t = time.time()
-    iddfs_path, iddfs_nodes = DFS(grid).iddfs(start, goal, max_depth=300)
-    iddfs_time = time.time() - t
-    results['IDDFS'] = dict(path=iddfs_path, nodes=iddfs_nodes, time=iddfs_time,
-                             color_bgr=ALGO_COLORS['IDDFS'])
-    print(f"      IDDFS → Path: {len(iddfs_path) if iddfs_path else 'None':>5} cells | "
-          f"Explored: {iddfs_nodes:>6} | Time: {iddfs_time:.4f}s")
+    if include_iddfs:
+        t = time.time()
+        iddfs_path, iddfs_nodes = DFS(grid).iddfs(start, goal, max_depth=300)
+        iddfs_time = time.time() - t
+        results['IDDFS'] = dict(path=iddfs_path, nodes=iddfs_nodes, time=iddfs_time,
+                                 color_bgr=ALGO_COLORS['IDDFS'])
+        print(f"      IDDFS → Path: {len(iddfs_path) if iddfs_path else 'None':>5} cells | "
+              f"Explored: {iddfs_nodes:>6} | Time: {iddfs_time:.4f}s")
+    else:
+        print("      IDDFS → skipped by default (use --include-iddfs for the exhaustive demo)")
 
     # ── 4. A* with all heuristics ────────────────────────────────────────
     print("\n[3/7] Running A* with all heuristics...")
@@ -294,14 +308,16 @@ def run(image_path, rl_episodes=200, interactive_points=False):
 
     # ── Visualize ────────────────────────────────────────────────────────
     print("\n[7/7] Generating visualizations...")
-    _visualize_all(img, grid, mdp, qagent, nn, results, start, goal, image_path)
+    _visualize_all(img, grid, mdp, qagent, nn, results, start, goal,
+                   image_path, headless=headless)
 
     print("\n✓ Done! Check the 'outputs/' folder for saved images.")
     return results
 
 
 # ─────────────────────────────────────────────────────────────────────────
-def _visualize_all(img, grid, mdp, qagent, nn, results, start, goal, image_path):
+def _visualize_all(img, grid, mdp, qagent, nn, results, start, goal,
+                   image_path, headless=False):
     """Generate all visualization panels."""
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -509,6 +525,8 @@ def _visualize_all(img, grid, mdp, qagent, nn, results, start, goal, image_path)
         print(f"  Saved: {out5}")
 
     # Show all plots
+    if headless:
+        return
     try:
         for fname in ["01_algorithm_comparison.png", "03_qlearning_training.png",
                       "05_heuristic_comparison.png"]:
@@ -536,6 +554,14 @@ if __name__ == "__main__":
                         help="Number of Q-Learning training episodes (default: 200)")
     parser.add_argument("--interactive", action="store_true",
                         help="Click to select start/goal points (requires display)")
+    parser.add_argument("--max-dimension", type=int, default=160,
+                        help="Cap the grid's largest dimension (default: 160)")
+    parser.add_argument("--headless", action="store_true",
+                        help="Skip GUI preview windows (recommended for CI/servers)")
+    parser.add_argument("--include-iddfs", action="store_true",
+                        help="Run exhaustive IDDFS; slower on winding image grids")
+    parser.add_argument("--mode", choices=["auto", "simple", "3d", "map", "occupancy"],
+                        default="auto", help="Image-to-grid preprocessing mode")
     args = parser.parse_args()
 
     # Locate image
@@ -562,4 +588,8 @@ if __name__ == "__main__":
     print(f"\nUsing image: {image_path}")
     run(image_path,
         rl_episodes=args.rl_episodes,
-        interactive_points=args.interactive)
+        interactive_points=args.interactive,
+        max_dimension=args.max_dimension,
+        headless=args.headless,
+        include_iddfs=args.include_iddfs,
+        image_mode=args.mode)
