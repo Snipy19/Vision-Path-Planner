@@ -152,7 +152,7 @@ def main():
                  color=TEXT, fontsize=24, weight="bold", linespacing=1.35)
         fig.text(0.06, 0.58, "The repository now includes a scale-safe image pipeline,\nvalidated planner implementations, a seeded benchmark harness,\nand a polished interactive architecture view.", color=MUTED, fontsize=12,
                  linespacing=1.6)
-        fig.text(0.06, 0.49, "Authors: Dhruv Raj · Yashica Gupta", color=BLUE, fontsize=11, weight="bold")
+        fig.text(0.06, 0.49, "Authors: Dhruv Raj (github.com/Snipy19) · Yashica Gupta (github.com/gyashica1hub)", color=BLUE, fontsize=10.5, weight="bold")
         add_card(fig, 0.06, 0.25, 0.18, 0.12, str(total_runs), "measured planner runs", BLUE)
         add_card(fig, 0.27, 0.25, 0.18, 0.12, f"{best_reduction:.2f}%", f"{best_reduction_name} node reduction", GREEN)
         add_card(fig, 0.48, 0.25, 0.18, 0.12, f"{total_success:.0f}%", "weighted route success", PURPLE)
