@@ -195,14 +195,31 @@ def main():
         pdf.savefig(fig, facecolor=NAVY)
         plt.close(fig)
 
-        fig = page_base("Visual output", "The same run produces overlays, heatmaps, training curves, and per-algorithm paths")
-        if args.comparison.exists():
-            image = plt.imread(args.comparison)
-            ax = fig.add_axes([0.06, 0.1, 0.88, 0.75])
-            ax.imshow(image)
-            ax.axis("off")
-        else:
-            fig.text(0.1, 0.5, "Run src/main.py to create the comparison image.", color=MUTED, fontsize=16)
+        fig = page_base("Updated measured output", "Current benchmark evidence generated from JSON — no stale comparison screenshot")
+        real_images = len(image_report["images"]) if image_report else 0
+        valid_paths = 0
+        checked_paths = 0
+        if image_report:
+            for item in image_report["images"]:
+                for result in item["algorithms"].values():
+                    checked_paths += 1
+                    valid_paths += int(result["success"])
+        add_card(fig, 0.07, 0.66, 0.19, 0.13, str(total_runs), "synthetic planner runs", BLUE)
+        add_card(fig, 0.29, 0.66, 0.19, 0.13, f"{best_reduction:.2f}%", "best node reduction", GREEN)
+        add_card(fig, 0.51, 0.66, 0.19, 0.13, str(real_images), "real 3D images", PURPLE)
+        add_card(fig, 0.73, 0.66, 0.19, 0.13, f"{valid_paths}/{checked_paths}", "valid 3D paths", ORANGE)
+        evidence = [
+            ("Benchmark", f"{meta['scenarios']} seeded scenarios × {meta['repeats']} repeats on {meta['grid_size']} grids"),
+            ("Algorithms", "BFS, DFS, A*, Weighted A*, Bidirectional A*, with measured nodes, latency, and optimality"),
+            ("3D validation", "Real bundled renders passed through the shared image-to-occupancy-grid pipeline"),
+            ("Reproducibility", f"Seed {meta['seed']} · obstacle density {meta['obstacle_density']:.3f} · {meta['movement']} movement"),
+        ]
+        y = 0.51
+        for label, value in evidence:
+            fig.text(0.09, y, label, color=BLUE, fontsize=12, weight="bold")
+            fig.text(0.25, y, value, color=TEXT, fontsize=11)
+            y -= 0.09
+        fig.text(0.09, 0.12, "The original comparison image remains available in outputs/ for local inspection; this report page is intentionally generated from the latest measured artifacts.", color=MUTED, fontsize=10, wrap=True)
         pdf.savefig(fig, facecolor=NAVY)
         plt.close(fig)
 
