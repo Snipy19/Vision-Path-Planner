@@ -128,10 +128,12 @@ python -m compileall -q src dashboard.py
 
 > Delivered a PyQt5 dashboard with live obstacle edits, stepwise search animation, RL/MDP heatmaps, JSON benchmark export, and regression tests for planner optimality and reproducibility.
 
-## License
-
-MIT.
-
 ## Authors
 
-Dhruv Raj · Yashica Gupta
+**Dhruv Raj** · [GitHub](https://github.com/Snipy19)
+
+**Yashica Gupta** · [GitHub](https://github.com/gyashica1hub)
+
+## License
+
+MIT License — free to use, modify, and distribute.
